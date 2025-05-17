@@ -1,13 +1,12 @@
 import React from "react";
-import Navbar from "../components/Navbar"; // <- Import Navbar
+import MainLayout from "../layouts/MainLayout";
 
 function Home() {
   return (
-    <div>
-      <Navbar />
+    <MainLayout>
       <h1 className="text-2xl font-bold mt-4 text-center">Welcome to the Book Library</h1>
-    </div>
+    </MainLayout>
   );
 }
 
-export default Home;
+export default Home; 
