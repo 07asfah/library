@@ -1,14 +1,10 @@
-import React from 'react';
-import MainLayout from '../layouts/MainLayout';
+import Login from '../components/Login';
 
-const Login = () => {
+export default function Login() {
     return (
-        <MainLayout>
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <h1 className="text-2xl font-bold mb-4">Login Page</h1>
-            </div>
-        </MainLayout>
+        <div>
+        <h1>Signup</h1>
+        <Login />
+        </div>
     );
-};
-
-export default Login;
+}
