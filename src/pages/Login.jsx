@@ -1,5 +1,6 @@
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LoginForm from '../components/LoginForm';
+import { useAdmin } from '../context/AdminContext';
 
 function Input({ label, name, value, onChange, type = 'text', placeholder }) {
     return (
@@ -19,17 +20,68 @@ function Input({ label, name, value, onChange, type = 'text', placeholder }) {
 }
 
 export default function Login() {
+    const [credentials, setCredentials] = useState({ emailOrUsername: '', password: '', rememberMe: false });
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const { login } = useAdmin();
     const navigate = useNavigate();
-    const { 
-        formData, 
-        isLoading, 
-        error, 
-        handleChange, 
-        handleSubmit, 
-        handleForgotPassword 
-    } = LoginForm({
-        onComplete: () => navigate('/')
-    });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
+
+        try {
+            // Check for admin login
+            if (credentials.emailOrUsername === 'admin' && credentials.password === 'admin123') {
+                login(credentials);
+                navigate('/BookDetail');
+                return;
+            }
+
+            // Check user credentials against signup data
+            const storedUsers = JSON.parse(localStorage.getItem('signupUsers') || '[]');
+            const user = storedUsers.find(user => 
+                (user.email === credentials.emailOrUsername || 
+                user.username === credentials.emailOrUsername) && 
+                user.password === credentials.password
+            );
+
+            if (user) {
+                // Store user session
+                if (credentials.rememberMe) {
+                    localStorage.setItem('userToken', 'user-token');
+                } else {
+                    sessionStorage.setItem('userToken', 'user-token');
+                }
+                localStorage.setItem('currentUser', JSON.stringify({ 
+                    name: user.name, 
+                    email: user.email 
+                }));
+                navigate('/library');
+            } else {
+                setError('Invalid email/username or password');
+            }
+        } catch (error) {
+            setError('An error occurred during login');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setCredentials(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+        setError('');
+    };
+
+    const handleForgotPassword = () => {
+        // Handle forgot password functionality
+        console.log('Forgot password clicked');
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
@@ -46,8 +98,8 @@ export default function Login() {
                     <Input 
                         label="Email or Username" 
                         name="emailOrUsername" 
-                        value={formData.emailOrUsername} 
-                        onChange={handleChange} 
+                        value={credentials.emailOrUsername} 
+                        onChange={handleChange}
                         placeholder="Enter your email or username"
                     />
                     
@@ -65,7 +117,7 @@ export default function Login() {
                         <input
                             type="password"
                             name="password"
-                            value={formData.password}
+                            value={credentials.password}
                             onChange={handleChange}
                             placeholder="Enter your password"
                             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -78,7 +130,7 @@ export default function Login() {
                             id="rememberMe"
                             name="rememberMe"
                             type="checkbox"
-                            checked={formData.rememberMe}
+                            checked={credentials.rememberMe}
                             onChange={handleChange}
                             className="h-4 w-4 text-teal-500 border-gray-300 rounded focus:ring-teal-400"
                         />
