@@ -32,14 +32,12 @@ export default function Login() {
         setIsLoading(true);
 
         try {
-            // Check for admin login
             if (credentials.emailOrUsername === 'admin' && credentials.password === 'admin123') {
                 login(credentials);
                 navigate('/BookDetail');
                 return;
             }
 
-            // Check user credentials against signup data
             const storedUsers = JSON.parse(localStorage.getItem('signupUsers') || '[]');
             const user = storedUsers.find(user => 
                 (user.email === credentials.emailOrUsername || 
@@ -79,7 +77,6 @@ export default function Login() {
     };
 
     const handleForgotPassword = () => {
-        // Handle forgot password functionality
         console.log('Forgot password clicked');
     };
 

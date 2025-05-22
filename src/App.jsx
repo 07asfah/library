@@ -15,11 +15,11 @@ function App() {
   return (
     <AdminProvider>
       <Router>
-        <Routes>
+      <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
           
           {/* Protected User Routes */}
           <Route 
@@ -49,8 +49,8 @@ function App() {
               </ProtectedRoute>
             } 
           />
-        </Routes>
-      </Router>
+      </Routes>
+    </Router>
     </AdminProvider>
   );
 }

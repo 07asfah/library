@@ -5,7 +5,6 @@ import Book1 from "../assets/Book.jpg";
 import BookSections from "../components/BookSections";
 import { searchBooks } from "../utils/Api";
 
-// Import best seller books data
 const bestSellerBooks = [
     {
         id: "bs1",
@@ -107,7 +106,6 @@ function Home() {
         setError("");
         try {
             const results = await searchBooks(searchQuery.trim());
-            // Combine search results with best sellers that match the search query
             const matchingBestSellers = bestSellerBooks.filter(book => 
                 book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 book.author.toLowerCase().includes(searchQuery.toLowerCase())
@@ -122,7 +120,6 @@ function Home() {
         }
     };
 
-    // Initialize with best seller books
     React.useEffect(() => {
         setSearchResults(bestSellerBooks);
     }, []);
@@ -186,7 +183,6 @@ function Home() {
                 </div>
             </section>
 
-            {/* Books Section */}
             <section className="py-8 bg-gray-50">
                 <div className="container mx-auto px-4">
                     {isSearching && (

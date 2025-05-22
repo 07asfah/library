@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { Link } from 'react-router-dom';
+import { searchBooks } from '../utils/Api';
 
 const Library = () => {
+    const [search, setSearch] = useState('');
     const [books, setBooks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -13,11 +15,29 @@ const Library = () => {
             setUser(JSON.parse(currentUser));
         }
         
-        // Load user's library books
-        const libraryBooks = JSON.parse(localStorage.getItem('libraryBooks') || '[]');
-        setBooks(libraryBooks);
-        setLoading(false);
+        fetchBooks();
     }, []);
+
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            fetchBooks();
+        }, 500);
+
+        return () => clearTimeout(delayDebounce); 
+    }, [search]);
+
+    const fetchBooks = async () => {
+        setLoading(true);
+        try {
+            const data = await searchBooks(search);
+            setBooks(data);
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            setBooks([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleRemoveBook = (bookId) => {
         try {
@@ -65,35 +85,25 @@ const Library = () => {
 
     return (
         <MainLayout>
-            <div className="container mx-auto py-6 px-4">
-                <div className="flex flex-col items-center mb-8">
-                    <h1 className="text-3xl font-bold mb-6 text-gray-800">My Library</h1>
-                </div>
+            <div className="container mx-auto py-6">
+                <h1 className="text-2xl font-bold mb-4">Library</h1>
+
+                
+                <input
+                    type="text"
+                    placeholder="Search by title or author..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full p-2 mb-6 border border-gray-300 rounded-lg"
+                />
+
                 
                 {loading ? (
-                    <div className="flex justify-center items-center min-h-[300px]">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-400"></div>
-                    </div>
-                ) : books.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                        </div>
-                        <h2 className="text-xl font-semibold text-gray-700 mb-2">Your library is empty</h2>
-                        <p className="text-gray-500 mb-6">Search for books and add them to your library</p>
-                        <Link 
-                            to="/" 
-                            className="inline-block bg-teal-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-teal-600 transition"
-                        >
-                            Browse Books
-                        </Link>
-                    </div>
-                ) : (
+                    <p>Loading...</p>
+                ) : books.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {books.map(book => (
-                            <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                            <div key={book._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                                 <div className="aspect-w-2 aspect-h-3">
                                     <img
                                         src={book.coverImage}
@@ -115,7 +125,7 @@ const Library = () => {
                                             )}
                                         </div>
                                         <button 
-                                            onClick={() => handleRemoveBook(book.id)}
+                                            onClick={() => handleRemoveBook(book._id)}
                                             className="bg-rose-500 text-white px-4 py-2 rounded hover:bg-rose-600 transition-colors text-sm"
                                         >
                                             Remove
@@ -125,6 +135,8 @@ const Library = () => {
                             </div>
                         ))}
                     </div>
+                ) : (
+                    <p className="text-gray-500">No books found.</p>
                 )}
             </div>
         </MainLayout>

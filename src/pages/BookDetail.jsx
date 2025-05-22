@@ -16,7 +16,6 @@ export default function BookDetail() {
     const [previewUrl, setPreviewUrl] = useState('');
     const [message, setMessage] = useState({ type: '', content: '' });
 
-    // Redirect if not admin
     if (!isAdmin) {
         navigate('/admin/login');
         return null;
@@ -37,7 +36,6 @@ export default function BookDetail() {
                 ...prev,
                 coverImage: file
             }));
-            // Create preview URL
             const url = URL.createObjectURL(file);
             setPreviewUrl(url);
         }
@@ -48,11 +46,9 @@ export default function BookDetail() {
         setMessage({ type: 'info', content: 'Adding book...' });
         
         try {
-            // Here you would typically send this to your backend
             console.log('Book Data:', bookData);
             setMessage({ type: 'success', content: 'Book added successfully!' });
             
-            // Clear form after success
             setBookData({
                 title: '',
                 author: '',
