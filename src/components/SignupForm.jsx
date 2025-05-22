@@ -1,6 +1,6 @@
-    import { useState } from 'react';
+import { useState } from 'react';
 
-    export default function SignupForm () {
+export default function SignupForm({ onComplete }) {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         name: '',
@@ -11,82 +11,114 @@
         password: '',
         confirmPassword: ''
     });
+    
+    const [generatedCode, setGeneratedCode] = useState('');
 
     const handleChange = (e) => {
         setFormData({
-        ...formData,
-        [e.target.name]: e.target.value
+            ...formData,
+            [e.target.name]: e.target.value
         });
+    };
+
+    const generateVerificationCode = () => {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        return code;
+    };
+
+    const sendVerificationCode = async (email, phone) => {
+        const newCode = generateVerificationCode();
+        setGeneratedCode(newCode);
+        
+        console.log(`CODE GENERATED: ${newCode}`);
+        console.log(`[Development Only] Your verification code is: ${newCode}`);
+        
+        try {
+            if ('Notification' in window) {
+                if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                    await Notification.requestPermission();
+                }
+                if (Notification.permission === 'granted') {
+                    new Notification('Verification Code', {
+                        body: `Your verification code is: ${newCode}`,
+                        icon: '/favicon.ico' // You can use your app icon here
+                    });
+                } else {
+                    console.warn('Notification permission not granted. Code is in console.');
+                }
+            } else {
+                console.warn('Browser does not support notifications. Code is in console.');
+            }
+        } catch (error) {
+            console.error('Error showing notification:', error);
+        }
+        
+        return new Promise((resolve) => setTimeout(resolve, 1000));
+    };
+
+    const verifyCode = async (enteredCode) => {
+        console.log(`Verifying code: ${enteredCode} against ${generatedCode}`);
+        return enteredCode === generatedCode;
+    };
+
+    const submitSignup = async (data) => {
+        console.log('Final signup data:', data);
+        
+        const user = {
+            name: data.name,
+            username: data.username,
+            email: data.email,
+            phone: data.phone,
+            password: data.password
+        };
+        
+        const existingUsers = JSON.parse(localStorage.getItem('signupUsers') || '[]');
+        existingUsers.push(user);
+        localStorage.setItem('signupUsers', JSON.stringify(existingUsers));
+        
+        localStorage.setItem('currentUser', JSON.stringify({ 
+            name: user.name, 
+            email: user.email 
+        }));
+        
+        return new Promise((resolve) => setTimeout(resolve, 1000));
     };
 
     const handleNext = async () => {
         if (step === 1) {
-        await sendVerificationCode(formData.email, formData.phone);
-        setStep(2);
+            await sendVerificationCode(formData.email, formData.phone);
+            setStep(2);
         } else if (step === 2) {
-        const isValid = await verifyCode(formData.verificationCode);
-        if (isValid) {
-            setStep(3);
-        } else {
-            alert('Invalid code. Please try again.');
-        }
+            const isValid = await verifyCode(formData.verificationCode);
+            if (isValid) {
+                setStep(3);
+            } else {
+                alert('Invalid code. Please try again.');
+            }
         } else if (step === 3) {
-        if (formData.password !== formData.confirmPassword) {
-            alert("Passwords don't match.");
-            return;
-        }
-        await submitSignup(formData);
-        window.location.href = '/login';
+            if (formData.password !== formData.confirmPassword) {
+                alert("Passwords don't match.");
+                return;
+            }
+            await submitSignup(formData);
+            if (onComplete) {
+                onComplete();
+            } else {
+                window.location.href = '/login';
+            }
         }
     };
 
-    return (
-        <div>
-        {step === 1 && (
-            <>
-            <input type="text" name="name" placeholder="Name" onChange={handleChange} />
-            <input type="text" name="username" placeholder="Username" onChange={handleChange} />
-            <input type="email" name="email" placeholder="Email" onChange={handleChange} />
-            <input type="text" name="phone" placeholder="Phone Number" onChange={handleChange} />
-            </>
-        )}
+    const handleResendCode = async () => {
+        await sendVerificationCode(formData.email, formData.phone);
+        console.log(`A new verification code has been sent to ${formData.email || formData.phone}`);
+    };
 
-        {step === 2 && (
-            <>
-            <p>A verification code was sent to your phone or email.</p>
-            <input type="text" name="verificationCode" placeholder="Verification Code" onChange={handleChange} />
-            </>
-        )}
-
-        {step === 3 && (
-            <>
-            <input type="password" name="password" placeholder="Password" onChange={handleChange} />
-            <input type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
-            </>
-        )}
-
-        <button onClick={handleNext}>Next</button>
-        </div>
-    );
-    }
-
-
-    async function sendVerificationCode(email, phone) {
-    console.log(`Sending code to ${email || phone}`);
-    return new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    async function verifyCode(code) {
-    console.log(`Verifying code ${code}`);
-    return new Promise((resolve) => setTimeout(() => resolve(code === '123456'), 1000));
-    }
-
-    async function submitSignup(data) {
-    console.log('Final signup data:', data);
-    return new Promise((resolve) => setTimeout(resolve, 1000));
+    return { 
+        step, 
+        formData, 
+        handleChange, 
+        handleNext,
+        handleResendCode
+    };
 }
-
-
-
-
-
