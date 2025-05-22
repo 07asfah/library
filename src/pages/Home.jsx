@@ -110,11 +110,15 @@ function Home() {
                 book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 book.author.toLowerCase().includes(searchQuery.toLowerCase())
             );
-            const combinedResults = [...matchingBestSellers, ...results];
+            
+            // Check if results.books exists and is an array
+            const searchResults = results.books || [];
+            const combinedResults = [...matchingBestSellers, ...searchResults];
             setSearchResults(combinedResults);
         } catch (error) {
             console.error('Search error:', error);
             setError("Failed to fetch books. Please try again.");
+            setSearchResults([]);
         } finally {
             setIsSearching(false);
         }

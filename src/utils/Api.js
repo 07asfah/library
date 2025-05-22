@@ -6,7 +6,13 @@ const API_BASE_URL = '/api';
 
 
 export const searchGoogleBooks = async (query) => {
+    if (!query) {
+        console.log('No query provided');
+        return [];
+    }
+
     try {
+        console.log('Fetching from Google Books API:', GOOGLE_BOOKS.BASE_URL);
         const response = await axios.get(GOOGLE_BOOKS.BASE_URL, {
             params: {
                 q: query,
@@ -16,21 +22,36 @@ export const searchGoogleBooks = async (query) => {
             }
         });
 
-        return response.data.items.map(item => ({
+        console.log('Google Books API Response:', response.status, response.statusText);
+
+        if (!response.data || !response.data.items) {
+            console.log('No results found:', response.data);
+            return [];
+        }
+
+        const mappedResults = response.data.items.map(item => ({
             id: item.id,
-            title: item.volumeInfo.title,
+            title: item.volumeInfo.title || 'Untitled',
             author: item.volumeInfo.authors ? item.volumeInfo.authors.join(', ') : 'Unknown Author',
             description: item.volumeInfo.description || '',
             publishedYear: item.volumeInfo.publishedDate ? new Date(item.volumeInfo.publishedDate).getFullYear() : null,
-            coverImage: item.volumeInfo.imageLinks?.thumbnail || '',
+            coverImage: item.volumeInfo.imageLinks?.thumbnail || 'https://via.placeholder.com/128x192?text=No+Cover',
             price: API_CONFIG.PRICING.DEFAULT_PRICE,
             discountedPrice: (API_CONFIG.PRICING.DEFAULT_PRICE * (100 - API_CONFIG.PRICING.DEFAULT_DISCOUNT_PERCENTAGE) / 100).toFixed(2),
             discount: `${API_CONFIG.PRICING.DEFAULT_DISCOUNT_PERCENTAGE}% OFF`,
             isbn: item.volumeInfo.industryIdentifiers?.[0]?.identifier || ''
         }));
+
+        console.log(`Found ${mappedResults.length} books`);
+        return mappedResults;
     } catch (error) {
-        console.error('Error searching Google Books:', error);
-        throw error;
+        console.error('Error searching Google Books:', {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data
+        });
+        return [];
     }
 };
 
@@ -127,35 +148,24 @@ export const getAllBooks = async (page = 1, limit = 20) => {
 
 export const searchBooks = async (query, page = 1, limit = 20) => {
     try {
-        const [googleResults, localResults] = await Promise.all([
-            searchGoogleBooks(query),
-            searchLocalBooks(query, page, limit)
-        ]);
-
-        const seenIsbns = new Set();
-        const combinedResults = [];
-
-        localResults.books.forEach(book => {
-            if (book.isbn) {
-                seenIsbns.add(book.isbn);
-            }
-            combinedResults.push(book);
-        });
-
-        googleResults.forEach(book => {
-            if (!book.isbn || !seenIsbns.has(book.isbn)) {
-                combinedResults.push(book);
-            }
-        });
-
+        const googleResults = await searchGoogleBooks(query);
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedResults = googleResults.slice(startIndex, endIndex);
+        
         return {
-            books: combinedResults,
+            books: paginatedResults,
             currentPage: page,
-            totalPages: Math.ceil(combinedResults.length / limit),
-            totalBooks: combinedResults.length
+            totalPages: Math.max(1, Math.ceil(googleResults.length / limit)),
+            totalBooks: googleResults.length
         };
     } catch (error) {
-        console.error('Error in combined search:', error);
-        throw error;
+        console.error('Error in search:', error);
+        return {
+            books: [],
+            currentPage: 1,
+            totalPages: 1,
+            totalBooks: 0
+        };
     }
 }; 

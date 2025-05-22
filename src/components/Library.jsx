@@ -6,32 +6,45 @@ const Library = () => {
     const [search, setSearch] = useState('');
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    useEffect(() => {
-        const fetchBooks = async () => {
-            setLoading(true);
-            try {
-                const results = await searchBooks(search, page);
-                setBooks(results.books);
-                setTotalPages(results.totalPages);
-            } catch (error) {
-                console.error('Error fetching books:', error);
-                setBooks([]);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchBooks = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const results = await searchBooks(search, page);
+            console.log('Search results:', results);
+            setBooks(results.books);
+            setTotalPages(results.totalPages);
+        } catch (error) {
+            console.error('Error fetching books:', error);
+            setError('Failed to fetch books. Please try again.');
+            setBooks([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         const delayDebounce = setTimeout(() => {
             if (search) {
                 fetchBooks();
+            } else {
+                setBooks([]);
+                setError('');
             }
         }, 500);
 
         return () => clearTimeout(delayDebounce);
     }, [search, page]);
+
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearch(value);
+        setPage(1); // Reset to first page on new search
+    };
 
     const handleAddToLibrary = async (book) => {
         try {
@@ -57,28 +70,41 @@ const Library = () => {
             <div className="container mx-auto py-6">
                 <h1 className="text-2xl font-bold mb-4">Library</h1>
 
-                <input
-                    type="text"
-                    placeholder="Search by title or author..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full p-2 mb-6 border border-gray-300 rounded-lg"
-                />
+                <div className="mb-6">
+                    <input
+                        type="text"
+                        placeholder="Search by title or author..."
+                        value={search}
+                        onChange={handleSearch}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                    />
+                </div>
 
-                {loading ? (
+                {loading && (
                     <div className="flex justify-center items-center min-h-[200px]">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700"></div>
                     </div>
-                ) : books.length > 0 ? (
+                )}
+
+                {error && (
+                    <div className="text-red-500 text-center mb-4 p-4 bg-red-50 rounded-lg">
+                        {error}
+                    </div>
+                )}
+
+                {!loading && !error && books.length > 0 && (
                     <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {books.map(book => (
                                 <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                                     <div className="aspect-w-2 aspect-h-3">
                                         <img
-                                            src={book.coverImage || 'https://via.placeholder.com/200x300?text=No+Cover'}
+                                            src={book.coverImage}
                                             alt={book.title}
                                             className="w-full h-[300px] object-cover"
+                                            onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/128x192?text=No+Cover';
+                                            }}
                                         />
                                     </div>
                                     <div className="p-4">
@@ -108,7 +134,7 @@ const Library = () => {
                             <div className="mt-8 flex justify-center gap-2">
                                 <button
                                     onClick={() => setPage(p => Math.max(1, p - 1))}
-                                    disabled={page === 1}
+                                    disabled={page === 1 || loading}
                                     className="px-4 py-2 bg-slate-700 text-white rounded disabled:bg-slate-400"
                                 >
                                     Previous
@@ -118,7 +144,7 @@ const Library = () => {
                                 </span>
                                 <button
                                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={page === totalPages}
+                                    disabled={page === totalPages || loading}
                                     className="px-4 py-2 bg-slate-700 text-white rounded disabled:bg-slate-400"
                                 >
                                     Next
@@ -126,10 +152,19 @@ const Library = () => {
                             </div>
                         )}
                     </>
-                ) : (
-                    <p className="text-gray-500 text-center">
-                        {search ? 'No books found.' : 'Start typing to search for books...'}
-                    </p>
+                )}
+
+                {!loading && !error && books.length === 0 && search && (
+                    <div className="text-center text-gray-500 py-10">
+                        <p className="text-xl">No books found</p>
+                        <p className="mt-2">Try adjusting your search terms</p>
+                    </div>
+                )}
+
+                {!loading && !error && !search && (
+                    <div className="text-center text-gray-500 py-10">
+                        <p className="text-xl">Start typing to search for books</p>
+                    </div>
                 )}
             </div>
         </MainLayout>

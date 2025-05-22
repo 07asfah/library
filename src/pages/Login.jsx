@@ -46,7 +46,6 @@ export default function Login() {
             );
 
             if (user) {
-                // Store user session
                 if (credentials.rememberMe) {
                     localStorage.setItem('userToken', 'user-token');
                 } else {
