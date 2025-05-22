@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
-import { searchBooks, addBook } from '../utils/api';
+import { searchBooks, addBook } from '../utils/Api';
 
 const Library = () => {
     const [search, setSearch] = useState('');
@@ -43,7 +43,7 @@ const Library = () => {
     const handleSearch = (e) => {
         const value = e.target.value;
         setSearch(value);
-        setPage(1); // Reset to first page on new search
+        setPage(1); 
     };
 
     const handleAddToLibrary = async (book) => {

@@ -14,7 +14,6 @@ export const searchBooks = async (query) => {
             }
         });
 
-        // Transform the response data to match our app's format
         return response.data.items.map(item => ({
             id: item.id,
             title: item.volumeInfo.title,

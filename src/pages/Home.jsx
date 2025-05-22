@@ -110,8 +110,6 @@ function Home() {
                 book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 book.author.toLowerCase().includes(searchQuery.toLowerCase())
             );
-            
-            // Check if results.books exists and is an array
             const searchResults = results.books || [];
             const combinedResults = [...matchingBestSellers, ...searchResults];
             setSearchResults(combinedResults);

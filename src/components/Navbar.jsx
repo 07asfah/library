@@ -8,7 +8,6 @@ function Navbar() {
     const [showDropdown, setShowDropdown] = useState(false);
 
     useEffect(() => {
-        // Check if user is logged in
         const currentUser = localStorage.getItem('currentUser');
         if (currentUser) {
             setUser(JSON.parse(currentUser));

@@ -6,7 +6,6 @@ export default function UserProtectedRoute({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check if user is logged in
         const userToken = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
         const currentUser = localStorage.getItem('currentUser');
         setIsAuthenticated(!!(userToken && currentUser));

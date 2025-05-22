@@ -41,7 +41,6 @@ export default function SignupForm({ onComplete }) {
                 if (Notification.permission === 'granted') {
                     new Notification('Verification Code', {
                         body: `Your verification code is: ${newCode}`,
-                        icon: '/favicon.ico' // You can use your app icon here
                     });
                 } else {
                     console.warn('Notification permission not granted. Code is in console.');
