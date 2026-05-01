@@ -1,13 +1,63 @@
-# React + Vite
+# Book Library
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + Vite web application for browsing and managing a book library, with separate user and admin areas. Books are sourced from the Google Books API.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **JavaScript (JSX)** — application code
+- **React 19** with **React Router DOM 7**
+- **Vite 6** — dev server and bundler
+- **Tailwind CSS 4** — styling
+- **Axios** — HTTP client
+- **Lucide React** — icons
+- **Google Books API** — book data
+- **ESLint 9** — linting
 
-## Expanding the ESLint configuration
+## Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# library
+- Public pages: Home, Login, Signup
+- User-protected library browsing
+- Admin login and dashboard (protected routes)
+- Book detail view
+- Auth state via `AdminContext`
+
+## Project Structure
+
+```
+src/
+  components/   Reusable UI (Navbar, Footer, forms, route guards…)
+  context/      AdminContext for auth state
+  layouts/      MainLayout
+  pages/        Home, Login, Signup, Library, BookDetail, AdminLogin, AdminDashboard
+  routes/       AppRoutes
+  utils/        Api.js, config.js, errors.js, googleBooksApi.js
+  App.jsx       Router setup
+  main.jsx      Entry point
+  index.css     Tailwind entry
+```
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ and npm
+
+### Install
+```bash
+npm install
+```
+
+### Environment
+
+Create a `.env` file at the project root:
+
+```
+VITE_GOOGLE_BOOKS_API_KEY=your_google_books_api_key
+```
+
+### Run
+```bash
+npm run dev       # start dev server
+npm run build     # production build
+npm run preview   # preview production build
+npm run lint      # run ESLint
+```
